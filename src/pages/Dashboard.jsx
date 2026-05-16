@@ -1,11 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
+import { createSosAlert } from "../services/sosService";
+import { useState } from "react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-
   const { currentUser } = useAuth();
+
+  const [sosLoading, setSosLoading] = useState(false);
+  const [sosMessage, setSosMessage] = useState("");
 
   const handleLogout = async () => {
     try {
@@ -16,111 +20,225 @@ const Dashboard = () => {
     }
   };
 
+  const handleSosAlert = () => {
+    setSosLoading(true);
+    setSosMessage("");
+
+    if (!navigator.geolocation) {
+      setSosLoading(false);
+      setSosMessage("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+
+          await createSosAlert(currentUser, location);
+
+          setSosMessage("SOS alert created successfully!");
+        } catch (error) {
+          console.log("SOS ERROR:", error.message);
+          setSosMessage("Failed to create SOS alert.");
+        } finally {
+          setSosLoading(false);
+        }
+      },
+      (error) => {
+        console.log("LOCATION ERROR:", error.message);
+        setSosLoading(false);
+        setSosMessage("Location permission denied.");
+      },
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-100 via-pink-50 to-purple-100">
       {/* Navbar */}
-      <div className="backdrop-blur-md bg-white/60 border-b border-white/30 shadow-sm">
+      <nav className="bg-white/70 backdrop-blur-lg border-b border-white/40 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-extrabold text-rose-600 tracking-tight">
+            <h1 className="text-3xl font-extrabold text-rose-600">
               NariKavach
             </h1>
-
             <p className="text-sm text-gray-600">
-              AI-Powered Women Safety Platform
+              AI-powered women safety dashboard
             </p>
           </div>
 
           <button
             onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-xl font-medium shadow-md transition duration-300"
+            className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-xl font-medium shadow-md transition"
           >
             Logout
           </button>
         </div>
-      </div>
+      </nav>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        {/* Welcome Section */}
-        <div className="bg-white/60 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/40">
-          <div className="flex flex-col md:flex-row justify-between gap-6">
-            <div>
-              <h2 className="text-4xl font-bold text-gray-800">
-                Welcome Back 👋
-              </h2>
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        {/* Hero Section */}
+        <section className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/40">
+            <p className="text-sm font-semibold text-rose-600">Safety Status</p>
 
-              <p className="text-gray-600 mt-3 text-lg">
-                Your personal safety dashboard is active and secured.
-              </p>
+            <h2 className="text-4xl font-bold text-gray-900 mt-3">
+              Welcome Back 👋
+            </h2>
 
-              <div className="mt-6 space-y-2">
-                <p className="text-gray-700">
-                  <span className="font-semibold">Email:</span>{" "}
+            <p className="text-gray-600 mt-3 text-lg">
+              Your emergency assistance dashboard is active and ready.
+            </p>
+
+            <div className="mt-6 grid sm:grid-cols-2 gap-4">
+              <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100">
+                <p className="text-sm text-gray-500">Logged in as</p>
+                <p className="font-semibold text-gray-800 break-all">
                   {currentUser?.email}
                 </p>
+              </div>
 
-                <p className="text-gray-700">
-                  <span className="font-semibold">User ID:</span>{" "}
-                  {currentUser?.uid}
+              <div className="bg-purple-50 rounded-2xl p-4 border border-purple-100">
+                <p className="text-sm text-gray-500">Protection Mode</p>
+                <p className="font-semibold text-green-600">Active & Secured</p>
+              </div>
+            </div>
+          </div>
+
+          {/* SOS Card */}
+          <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl shadow-2xl p-8 text-white flex flex-col justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-wide text-red-100">
+                Emergency Action
+              </p>
+
+              <h3 className="text-3xl font-extrabold mt-3">SOS Alert</h3>
+
+              <p className="text-red-100 mt-3">
+                Use this only when you need immediate help.
+              </p>
+            </div>
+
+            <button
+              onClick={handleSosAlert}
+              disabled={sosLoading}
+              className="mt-8 bg-white text-red-600 hover:bg-red-50 py-4 rounded-2xl text-xl font-extrabold shadow-lg transition hover:scale-105 disabled:opacity-60"
+            >
+              {sosLoading ? "Sending SOS..." : "🚨 Trigger SOS"}
+            </button>
+
+            {sosMessage && (
+              <p className="mt-4 text-red-100 font-semibold">{sosMessage}</p>
+            )}
+          </div>
+        </section>
+
+        {/* Quick Actions */}
+        <section className="grid md:grid-cols-4 gap-6 mt-8">
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
+            <div className="text-4xl">📍</div>
+            <h3 className="font-bold text-gray-900 mt-4">Live Location</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              Share your current location in emergencies.
+            </p>
+          </div>
+
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
+            <div className="text-4xl">👥</div>
+            <h3 className="font-bold text-gray-900 mt-4">Trusted Contacts</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              Manage people who receive safety alerts.
+            </p>
+          </div>
+
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
+            <div className="text-4xl">🤖</div>
+            <h3 className="font-bold text-gray-900 mt-4">AI Safety Check</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              Analyze suspicious situations using AI.
+            </p>
+          </div>
+
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
+            <div className="text-4xl">📞</div>
+            <h3 className="font-bold text-gray-900 mt-4">Helpline</h3>
+            <p className="text-sm text-gray-500 mt-2">
+              Quick access to women safety helplines.
+            </p>
+          </div>
+        </section>
+
+        {/* Lower Panels */}
+        <section className="grid lg:grid-cols-2 gap-8 mt-8">
+          {/* Emergency Contacts */}
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/40">
+            <div className="flex justify-between items-center">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Trusted Contacts
+              </h3>
+
+              <button className="text-rose-600 font-semibold hover:underline">
+                Add Contact
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center justify-between bg-rose-50 p-4 rounded-2xl">
+                <div>
+                  <p className="font-semibold text-gray-800">Mother</p>
+                  <p className="text-sm text-gray-500">Not added yet</p>
+                </div>
+                <span className="text-2xl">👩</span>
+              </div>
+
+              <div className="flex items-center justify-between bg-purple-50 p-4 rounded-2xl">
+                <div>
+                  <p className="font-semibold text-gray-800">Friend</p>
+                  <p className="text-sm text-gray-500">Not added yet</p>
+                </div>
+                <span className="text-2xl">🧑‍🤝‍🧑</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/40">
+            <h3 className="text-2xl font-bold text-gray-900">
+              Recent Safety Activity
+            </h3>
+
+            <div className="mt-6 space-y-4">
+              <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
+                <p className="font-semibold text-green-700">Account secured</p>
+                <p className="text-sm text-gray-500">
+                  Authentication and protected routes are active.
+                </p>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                <p className="font-semibold text-blue-700">
+                  Dashboard initialized
+                </p>
+                <p className="text-sm text-gray-500">
+                  Safety modules are ready for feature integration.
+                </p>
+              </div>
+
+              <div className="bg-yellow-50 p-4 rounded-2xl border border-yellow-100">
+                <p className="font-semibold text-yellow-700">
+                  SOS backend pending
+                </p>
+                <p className="text-sm text-gray-500">
+                  Next step: connect SOS button to Firestore.
                 </p>
               </div>
             </div>
-
-            {/* Emergency Button */}
-            <div className="flex items-center">
-              <button className="bg-red-500 hover:bg-red-600 text-white text-xl font-bold px-10 py-6 rounded-2xl shadow-2xl transition duration-300 hover:scale-105">
-                🚨 SOS ALERT
-              </button>
-            </div>
           </div>
-        </div>
-
-        {/* Feature Cards */}
-        <div className="grid md:grid-cols-3 gap-8 mt-10">
-          {/* Card 1 */}
-          <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/40 hover:scale-105 transition duration-300">
-            <div className="text-5xl">🆘</div>
-
-            <h3 className="text-2xl font-bold text-rose-600 mt-5">
-              Emergency SOS
-            </h3>
-
-            <p className="text-gray-600 mt-4 leading-relaxed">
-              Trigger emergency alerts instantly and notify trusted contacts in
-              dangerous situations.
-            </p>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/40 hover:scale-105 transition duration-300">
-            <div className="text-5xl">📍</div>
-
-            <h3 className="text-2xl font-bold text-purple-600 mt-5">
-              Live Location
-            </h3>
-
-            <p className="text-gray-600 mt-4 leading-relaxed">
-              Share real-time location tracking with emergency contacts during
-              unsafe situations.
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/40 hover:scale-105 transition duration-300">
-            <div className="text-5xl">🤖</div>
-
-            <h3 className="text-2xl font-bold text-indigo-600 mt-5">
-              AI Threat Detection
-            </h3>
-
-            <p className="text-gray-600 mt-4 leading-relaxed">
-              AI-powered analysis helps detect suspicious activity and unsafe
-              patterns.
-            </p>
-          </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 };
