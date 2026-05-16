@@ -398,7 +398,16 @@ Please contact me or emergency services as soon as possible.`;
                       </p>
                     </div>
 
-                    <span className="text-2xl">👥</span>
+                    <div className="flex gap-3 items-center">
+                      <a
+                        href={`tel:${contact.phone}`}
+                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl text-sm font-semibold"
+                      >
+                        📞 Call
+                      </a>
+
+                      <span className="text-2xl">👥</span>
+                    </div>
                   </div>
                 ))
               )}
