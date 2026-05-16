@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+
 import { loginUser } from "../services/authService";
 
 const Login = () => {
@@ -12,6 +13,9 @@ const Login = () => {
 
   const [error, setError] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
+  // Handle Input Change
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -19,59 +23,89 @@ const Login = () => {
     });
   };
 
+  // Handle Login
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    setError("");
+    setLoading(true);
+
     try {
+      console.log("EMAIL:", formData.email);
+      console.log("PASSWORD:", formData.password);
+
       await loginUser(formData.email, formData.password);
+
       navigate("/dashboard");
     } catch (error) {
+      console.log("LOGIN ERROR:", error.code, error.message);
+
       setError("Invalid email or password");
-      console.log(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-pink-50">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-pink-600">Login</h1>
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-rose-50 to-purple-100 flex items-center justify-center px-4">
+      <div className="bg-white/70 backdrop-blur-lg shadow-2xl rounded-3xl p-8 w-full max-w-md border border-white/40">
+        {/* Heading */}
+        <div className="text-center">
+          <h1 className="text-4xl font-extrabold text-rose-600">NariKavach</h1>
 
+          <p className="text-gray-600 mt-3">
+            Secure Login to Your Safety Dashboard
+          </p>
+        </div>
+
+        {/* Error */}
         {error && (
-          <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
+          <div className="bg-red-100 text-red-600 text-sm p-3 rounded-xl mt-5">
+            {error}
+          </div>
         )}
 
-        <form onSubmit={handleLogin} className="mt-6 space-y-4">
+        {/* Form */}
+        <form onSubmit={handleLogin} className="mt-8 space-y-5">
+          {/* Email */}
           <input
             type="email"
             name="email"
-            placeholder="Enter email"
+            placeholder="Enter your email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full border px-4 py-3 rounded-lg"
             required
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400"
           />
 
+          {/* Password */}
           <input
             type="password"
             name="password"
-            placeholder="Enter password"
+            placeholder="Enter your password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full border px-4 py-3 rounded-lg"
             required
+            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400"
           />
 
+          {/* Button */}
           <button
             type="submit"
-            className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700"
+            disabled={loading}
+            className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl font-semibold transition duration-300 shadow-md"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <p className="text-center mt-5 text-sm">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-pink-600 font-semibold">
+        {/* Signup Redirect */}
+        <p className="text-center text-gray-600 text-sm mt-6">
+          Don&apos;t have an account?{" "}
+          <Link
+            to="/signup"
+            className="text-rose-600 font-semibold hover:underline"
+          >
             Signup
           </Link>
         </p>
