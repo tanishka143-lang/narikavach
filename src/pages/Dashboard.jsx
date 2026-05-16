@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { logoutUser } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
-import { createSosAlert } from "../services/sosService";
-import { useEffect, useState } from "react";
+import { createSosAlert, getUserSosAlerts } from "../services/sosService";
+import { getCurrentLocation } from "../services/locationService";
 import {
   addTrustedContact,
   getTrustedContacts,
@@ -22,6 +24,11 @@ const Dashboard = () => {
     relation: "",
   });
 
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [locationError, setLocationError] = useState("");
+
+  const [sosAlerts, setSosAlerts] = useState([]);
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -29,6 +36,20 @@ const Dashboard = () => {
     } catch (error) {
       console.log(error.message);
     }
+  };
+
+  const fetchContacts = async () => {
+    if (!currentUser) return;
+
+    const data = await getTrustedContacts(currentUser.uid);
+    setContacts(data);
+  };
+
+  const fetchSosAlerts = async () => {
+    if (!currentUser) return;
+
+    const data = await getUserSosAlerts(currentUser.uid);
+    setSosAlerts(data);
   };
 
   const handleSosAlert = () => {
@@ -52,6 +73,7 @@ const Dashboard = () => {
           await createSosAlert(currentUser, location);
 
           setSosMessage("SOS alert created successfully!");
+          fetchSosAlerts();
         } catch (error) {
           console.log("SOS ERROR:", error.message);
           setSosMessage("Failed to create SOS alert.");
@@ -65,13 +87,6 @@ const Dashboard = () => {
         setSosMessage("Location permission denied.");
       },
     );
-  };
-
-  const fetchContacts = async () => {
-    if (!currentUser) return;
-
-    const data = await getTrustedContacts(currentUser.uid);
-    setContacts(data);
   };
 
   const handleAddContact = async (e) => {
@@ -92,13 +107,46 @@ const Dashboard = () => {
 
     fetchContacts();
   };
+
+  const handleGetLocation = async () => {
+    setLocationError("");
+
+    try {
+      const location = await getCurrentLocation();
+      setCurrentLocation(location);
+    } catch (error) {
+      setLocationError(error);
+    }
+  };
+
+  const handleCopyEmergencyMessage = async (sosAlert) => {
+    const message = `🚨 EMERGENCY ALERT!
+
+I need help immediately.
+
+My current location:
+https://www.google.com/maps?q=${sosAlert.latitude},${sosAlert.longitude}
+
+User: ${currentUser?.email}
+
+Please contact me or emergency services as soon as possible.`;
+
+    try {
+      await navigator.clipboard.writeText(message);
+      window.alert("Emergency message copied!");
+    } catch (error) {
+      console.log("COPY ERROR:", error.message);
+      window.alert("Failed to copy emergency message.");
+    }
+  };
+
   useEffect(() => {
     fetchContacts();
+    fetchSosAlerts();
   }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-100 via-pink-50 to-purple-100">
-      {/* Navbar */}
       <nav className="bg-white/70 backdrop-blur-lg border-b border-white/40 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
@@ -120,7 +168,6 @@ const Dashboard = () => {
       </nav>
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        {/* Hero Section */}
         <section className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/40">
             <p className="text-sm font-semibold text-rose-600">Safety Status</p>
@@ -148,7 +195,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* SOS Card */}
           <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl shadow-2xl p-8 text-white flex flex-col justify-between">
             <div>
               <p className="text-sm uppercase tracking-wide text-red-100">
@@ -176,14 +222,42 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* Quick Actions */}
         <section className="grid md:grid-cols-4 gap-6 mt-8">
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
             <div className="text-4xl">📍</div>
+
             <h3 className="font-bold text-gray-900 mt-4">Live Location</h3>
+
             <p className="text-sm text-gray-500 mt-2">
-              Share your current location in emergencies.
+              View your current location and open it in Google Maps.
             </p>
+
+            <button
+              onClick={handleGetLocation}
+              className="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold"
+            >
+              Get Location
+            </button>
+
+            {currentLocation && (
+              <div className="mt-4 text-sm text-gray-600 space-y-1">
+                <p>Lat: {currentLocation.latitude}</p>
+                <p>Lng: {currentLocation.longitude}</p>
+
+                <a
+                  href={`https://www.google.com/maps?q=${currentLocation.latitude},${currentLocation.longitude}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block mt-2 text-purple-600 font-semibold hover:underline"
+                >
+                  Open in Google Maps
+                </a>
+              </div>
+            )}
+
+            {locationError && (
+              <p className="mt-3 text-sm text-red-500">{locationError}</p>
+            )}
           </div>
 
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
@@ -196,10 +270,19 @@ const Dashboard = () => {
 
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
             <div className="text-4xl">🤖</div>
+
             <h3 className="font-bold text-gray-900 mt-4">AI Safety Check</h3>
+
             <p className="text-sm text-gray-500 mt-2">
-              Analyze suspicious situations using AI.
+              Receive AI-powered emergency safety assistance and guidance.
             </p>
+
+            <button
+              onClick={() => navigate("/assistant")}
+              className="mt-4 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-xl font-semibold"
+            >
+              Open Assistant
+            </button>
           </div>
 
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
@@ -211,9 +294,7 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* Lower Panels */}
         <section className="grid lg:grid-cols-2 gap-8 mt-8">
-          {/* Trusted Contacts */}
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/40">
             <h3 className="text-2xl font-bold text-gray-900">
               Trusted Contacts
@@ -291,37 +372,52 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Recent Activity */}
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/40">
             <h3 className="text-2xl font-bold text-gray-900">
-              Recent Safety Activity
+              Recent SOS Alerts
             </h3>
 
             <div className="mt-6 space-y-4">
-              <div className="bg-green-50 p-4 rounded-2xl border border-green-100">
-                <p className="font-semibold text-green-700">Account secured</p>
-                <p className="text-sm text-gray-500">
-                  Authentication and protected routes are active.
+              {sosAlerts.length === 0 ? (
+                <p className="text-gray-500 text-sm">
+                  No SOS alerts triggered yet.
                 </p>
-              </div>
+              ) : (
+                sosAlerts.map((sosAlert) => (
+                  <div
+                    key={sosAlert.id}
+                    className="bg-red-50 p-4 rounded-2xl border border-red-100"
+                  >
+                    <p className="font-semibold text-red-700">
+                      🚨 SOS {sosAlert.status}
+                    </p>
 
-              <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                <p className="font-semibold text-blue-700">
-                  Dashboard initialized
-                </p>
-                <p className="text-sm text-gray-500">
-                  Safety modules are ready for feature integration.
-                </p>
-              </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Lat: {sosAlert.latitude}
+                    </p>
 
-              <div className="bg-yellow-50 p-4 rounded-2xl border border-yellow-100">
-                <p className="font-semibold text-yellow-700">
-                  SOS backend pending
-                </p>
-                <p className="text-sm text-gray-500">
-                  Next step: connect SOS button to Firestore.
-                </p>
-              </div>
+                    <p className="text-sm text-gray-600">
+                      Lng: {sosAlert.longitude}
+                    </p>
+
+                    <a
+                      href={`https://www.google.com/maps?q=${sosAlert.latitude},${sosAlert.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block mt-2 text-red-600 font-semibold hover:underline"
+                    >
+                      View Location on Google Maps
+                    </a>
+
+                    <button
+                      onClick={() => handleCopyEmergencyMessage(sosAlert)}
+                      className="block mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-semibold"
+                    >
+                      Copy Emergency Message
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </section>

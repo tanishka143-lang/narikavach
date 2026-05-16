@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Assistant from "./pages/Assistant";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -13,7 +14,6 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
 
         <Route path="/signup" element={<Signup />} />
-
         <Route path="/login" element={<Login />} />
 
         <Route
@@ -21,6 +21,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/assistant"
+          element={
+            <ProtectedRoute>
+              <Assistant />
             </ProtectedRoute>
           }
         />
