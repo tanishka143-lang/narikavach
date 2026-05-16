@@ -158,12 +158,21 @@ Please contact me or emergency services as soon as possible.`;
             </p>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-xl font-medium shadow-md transition"
-          >
-            Logout
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/profile")}
+              className="bg-white text-rose-600 px-5 py-2 rounded-xl font-medium shadow-md hover:bg-rose-50 transition"
+            >
+              Profile
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-xl font-medium shadow-md transition"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -222,7 +231,7 @@ Please contact me or emergency services as soon as possible.`;
           </div>
         </section>
 
-        <section className="grid md:grid-cols-4 gap-6 mt-8">
+        <section className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mt-8">
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
             <div className="text-4xl">📍</div>
 
@@ -289,8 +298,32 @@ Please contact me or emergency services as soon as possible.`;
             <div className="text-4xl">📞</div>
             <h3 className="font-bold text-gray-900 mt-4">Helpline</h3>
             <p className="text-sm text-gray-500 mt-2">
-              Quick access to women safety helplines.
+              Instant access to emergency and women safety helpline numbers.
             </p>
+
+            <button
+              onClick={() => navigate("/helpline")}
+              className="mt-4 bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-xl font-semibold"
+            >
+              View Helplines
+            </button>
+          </div>
+
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
+            <div className="text-4xl">🛡️</div>
+
+            <h3 className="font-bold text-gray-900 mt-4">Safe Places</h3>
+
+            <p className="text-sm text-gray-500 mt-2">
+              Find nearby police stations, hospitals, and safer public places.
+            </p>
+
+            <button
+              onClick={() => navigate("/safe-places")}
+              className="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold"
+            >
+              Explore Places
+            </button>
           </div>
         </section>
 

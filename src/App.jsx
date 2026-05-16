@@ -4,6 +4,9 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Assistant from "./pages/Assistant";
+import Helpline from "./pages/Helpline";
+import SafePlaces from "./pages/SafePlaces";
+import Profile from "./pages/Profile";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -30,6 +33,33 @@ function App() {
           element={
             <ProtectedRoute>
               <Assistant />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/helpline"
+          element={
+            <ProtectedRoute>
+              <Helpline />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/safe-places"
+          element={
+            <ProtectedRoute>
+              <SafePlaces />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

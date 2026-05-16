@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { saveChatMessage, getChatMessages } from "../services/chatService";
 
 const SafetyAssistant = () => {
+  const { currentUser } = useAuth();
+
   const [messages, setMessages] = useState([
     {
       sender: "ai",
@@ -16,6 +20,16 @@ const SafetyAssistant = () => {
     "I am alone at night",
     "I need emergency help",
   ];
+
+  const fetchChatHistory = async () => {
+    if (!currentUser) return;
+
+    const savedMessages = await getChatMessages(currentUser.uid);
+
+    if (savedMessages.length > 0) {
+      setMessages(savedMessages);
+    }
+  };
 
   const getSafetyResponse = (userMessage) => {
     const message = userMessage.toLowerCase();
@@ -39,7 +53,7 @@ const SafetyAssistant = () => {
     return "I’m here to help. Tell me if you feel unsafe, followed, alone, or need emergency guidance.";
   };
 
-  const sendMessage = (text) => {
+  const sendMessage = async (text) => {
     if (!text.trim()) return;
 
     const userMessage = {
@@ -53,18 +67,27 @@ const SafetyAssistant = () => {
     };
 
     setMessages((prevMessages) => [...prevMessages, userMessage, aiMessage]);
+
+    if (currentUser) {
+      await saveChatMessage(currentUser.uid, userMessage);
+      await saveChatMessage(currentUser.uid, aiMessage);
+    }
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
 
-    sendMessage(input);
+    await sendMessage(input);
     setInput("");
   };
 
-  const handleQuickPrompt = (prompt) => {
-    sendMessage(prompt);
+  const handleQuickPrompt = async (prompt) => {
+    await sendMessage(prompt);
   };
+
+  useEffect(() => {
+    fetchChatHistory();
+  }, [currentUser]);
 
   return (
     <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl p-6 border border-white/40">
@@ -89,7 +112,7 @@ const SafetyAssistant = () => {
       <div className="mt-5 h-72 overflow-y-auto space-y-4 pr-2">
         {messages.map((message, index) => (
           <div
-            key={index}
+            key={message.id || index}
             className={`p-4 rounded-2xl text-sm ${
               message.sender === "ai"
                 ? "bg-purple-50 text-gray-700"
