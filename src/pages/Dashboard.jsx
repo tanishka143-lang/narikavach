@@ -2,7 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 import { createSosAlert } from "../services/sosService";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  addTrustedContact,
+  getTrustedContacts,
+} from "../services/contactService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -10,6 +14,13 @@ const Dashboard = () => {
 
   const [sosLoading, setSosLoading] = useState(false);
   const [sosMessage, setSosMessage] = useState("");
+
+  const [contacts, setContacts] = useState([]);
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    phone: "",
+    relation: "",
+  });
 
   const handleLogout = async () => {
     try {
@@ -55,6 +66,35 @@ const Dashboard = () => {
       },
     );
   };
+
+  const fetchContacts = async () => {
+    if (!currentUser) return;
+
+    const data = await getTrustedContacts(currentUser.uid);
+    setContacts(data);
+  };
+
+  const handleAddContact = async (e) => {
+    e.preventDefault();
+
+    await addTrustedContact(
+      currentUser.uid,
+      contactForm.name,
+      contactForm.phone,
+      contactForm.relation,
+    );
+
+    setContactForm({
+      name: "",
+      phone: "",
+      relation: "",
+    });
+
+    fetchContacts();
+  };
+  useEffect(() => {
+    fetchContacts();
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-100 via-pink-50 to-purple-100">
@@ -173,34 +213,81 @@ const Dashboard = () => {
 
         {/* Lower Panels */}
         <section className="grid lg:grid-cols-2 gap-8 mt-8">
-          {/* Emergency Contacts */}
+          {/* Trusted Contacts */}
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/40">
-            <div className="flex justify-between items-center">
-              <h3 className="text-2xl font-bold text-gray-900">
-                Trusted Contacts
-              </h3>
+            <h3 className="text-2xl font-bold text-gray-900">
+              Trusted Contacts
+            </h3>
 
-              <button className="text-rose-600 font-semibold hover:underline">
-                Add Contact
+            <form onSubmit={handleAddContact} className="mt-6 space-y-4">
+              <input
+                type="text"
+                placeholder="Contact Name"
+                value={contactForm.name}
+                onChange={(e) =>
+                  setContactForm({ ...contactForm, name: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                required
+              />
+
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={contactForm.phone}
+                onChange={(e) =>
+                  setContactForm({ ...contactForm, phone: e.target.value })
+                }
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                required
+              />
+
+              <input
+                type="text"
+                placeholder="Relation e.g. Mother, Friend"
+                value={contactForm.relation}
+                onChange={(e) =>
+                  setContactForm({
+                    ...contactForm,
+                    relation: e.target.value,
+                  })
+                }
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                required
+              />
+
+              <button
+                type="submit"
+                className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-xl font-semibold transition"
+              >
+                Add Trusted Contact
               </button>
-            </div>
+            </form>
 
             <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between bg-rose-50 p-4 rounded-2xl">
-                <div>
-                  <p className="font-semibold text-gray-800">Mother</p>
-                  <p className="text-sm text-gray-500">Not added yet</p>
-                </div>
-                <span className="text-2xl">👩</span>
-              </div>
+              {contacts.length === 0 ? (
+                <p className="text-gray-500 text-sm">
+                  No trusted contacts added yet.
+                </p>
+              ) : (
+                contacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    className="flex justify-between items-center bg-rose-50 p-4 rounded-2xl"
+                  >
+                    <div>
+                      <p className="font-semibold text-gray-800">
+                        {contact.name}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {contact.relation} • {contact.phone}
+                      </p>
+                    </div>
 
-              <div className="flex items-center justify-between bg-purple-50 p-4 rounded-2xl">
-                <div>
-                  <p className="font-semibold text-gray-800">Friend</p>
-                  <p className="text-sm text-gray-500">Not added yet</p>
-                </div>
-                <span className="text-2xl">🧑‍🤝‍🧑</span>
-              </div>
+                    <span className="text-2xl">👥</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
