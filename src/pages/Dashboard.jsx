@@ -231,7 +231,7 @@ Please contact me or emergency services as soon as possible.`;
           </div>
         </section>
 
-        <section className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mt-8">
+        <section className="grid md:grid-cols-2 lg:grid-cols-6 gap-6 mt-8">
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
             <div className="text-4xl">📍</div>
 
@@ -243,7 +243,7 @@ Please contact me or emergency services as soon as possible.`;
 
             <button
               onClick={handleGetLocation}
-              className="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold"
+              className="mt-4 w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold transition"
             >
               Get Location
             </button>
@@ -271,7 +271,9 @@ Please contact me or emergency services as soon as possible.`;
 
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
             <div className="text-4xl">👥</div>
+
             <h3 className="font-bold text-gray-900 mt-4">Trusted Contacts</h3>
+
             <p className="text-sm text-gray-500 mt-2">
               Manage people who receive safety alerts.
             </p>
@@ -296,7 +298,9 @@ Please contact me or emergency services as soon as possible.`;
 
           <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
             <div className="text-4xl">📞</div>
+
             <h3 className="font-bold text-gray-900 mt-4">Helpline</h3>
+
             <p className="text-sm text-gray-500 mt-2">
               Instant access to emergency and women safety helpline numbers.
             </p>
@@ -323,6 +327,24 @@ Please contact me or emergency services as soon as possible.`;
               className="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold"
             >
               Explore Places
+            </button>
+          </div>
+
+          <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-6 shadow-lg border border-white/40 hover:scale-105 transition">
+            <div className="text-4xl">⚠️</div>
+
+            <h3 className="font-bold text-gray-900 mt-4">Report Incident</h3>
+
+            <p className="text-sm text-gray-500 mt-2">
+              Report unsafe places, suspicious activity, or harassment
+              incidents.
+            </p>
+
+            <button
+              onClick={() => navigate("/report-incident")}
+              className="mt-4 w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-semibold transition"
+            >
+              Report Now
             </button>
           </div>
         </section>
@@ -393,6 +415,7 @@ Please contact me or emergency services as soon as possible.`;
                       <p className="font-semibold text-gray-800">
                         {contact.name}
                       </p>
+
                       <p className="text-sm text-gray-500">
                         {contact.relation} • {contact.phone}
                       </p>

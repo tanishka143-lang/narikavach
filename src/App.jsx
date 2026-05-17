@@ -7,6 +7,7 @@ import Assistant from "./pages/Assistant";
 import Helpline from "./pages/Helpline";
 import SafePlaces from "./pages/SafePlaces";
 import Profile from "./pages/Profile";
+import ReportIncident from "./pages/ReportIncident";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -14,6 +15,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route
+          path="/report-incident"
+          element={
+            <ProtectedRoute>
+              <ReportIncident />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/" element={<Navigate to="/login" />} />
 
         <Route path="/signup" element={<Signup />} />
